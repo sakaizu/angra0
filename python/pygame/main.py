@@ -45,7 +45,6 @@ def updateDraw(): #Draw screen every tick
     pygame.display.update()
 
 
-
 while running:
     Clock.tick(FPS)
 
