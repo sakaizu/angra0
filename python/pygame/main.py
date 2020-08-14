@@ -77,6 +77,12 @@ while running:
     pc_x_pos += mv_x
     pc_y_pos += mv_y
 
+    if pc_x_pos < 0:
+        pc_x_pos = 0
+    elif pc_x_pos > screen_width - pc_width:
+        pc_x_pos = screen_width - pc_width
+    
+
     updateDraw()
 
 
