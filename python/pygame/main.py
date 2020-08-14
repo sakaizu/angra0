@@ -33,16 +33,17 @@ FPS = 60
 Clock = pygame.time.Clock()
 font_main = pygame.font.SysFont("comicsans", 40)
 
+
 def updateDraw(): #Draw screen every tick
     screen.blit(bgimage, (0, 0))
     screen.blit(pcimage,(pc_x_pos, pc_y_pos))
 
     # draw ui
     main_label = font_main.render(f"Level: {Clock}", 1, (255,0,0))
-
     screen.blit(main_label, (10, 10))
 
     pygame.display.update()
+
 
 
 while running:
