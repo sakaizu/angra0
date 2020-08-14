@@ -1,12 +1,11 @@
 import pygame
 import os
 import random
-pygame.font.init()
 
+pygame.font.init()
 pygame.init()
 
-screen_width= 480
-screen_height = 640
+screen_width, screen_height =  480, 640
 
 screen = pygame.display.set_mode((screen_width, screen_height))
 
@@ -20,6 +19,7 @@ pc_size = pcimage.get_rect().size
 
 pc_width = pc_size[0]
 pc_height = pc_size[1]
+# Initial PC position
 pc_x_pos = screen_width / 2 - (pc_width/2)
 pc_y_pos = screen_height - pc_height
 
@@ -81,6 +81,11 @@ while running:
         pc_x_pos = 0
     elif pc_x_pos > screen_width - pc_width:
         pc_x_pos = screen_width - pc_width
+
+    if pc_y_pos < 0:
+        pc_y_pos = 0
+    elif pc_y_pos + pc_height > screen_height:
+        pc_y_pos = screen_height - pc_height
     
 
     updateDraw()
