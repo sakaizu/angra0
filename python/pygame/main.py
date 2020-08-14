@@ -60,6 +60,8 @@ while running:
                 print(" game end")
 
             if event.key == pygame.K_LEFT:
+                if event.key == pygame.K_RIGHT:
+                    mv_x += 5
                 mv_x -= 5
             elif event.key == pygame.K_RIGHT:
                 mv_x += 5
