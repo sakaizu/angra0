@@ -12,7 +12,7 @@ screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("mygame")
 
 #background image
-bgimage = pygame.image.load(os.path.join('python/pygame', 'asset/bg.png'))
+bgimage = pygame.transform.scale(pygame.image.load(os.path.join('python/pygame', 'asset/bg.png')), (screen_width, screen_height))
 
 pcimage = pygame.image.load(os.path.join('python/pygame', 'asset/pc.png'))
 pc_size = pcimage.get_rect().size
@@ -89,7 +89,7 @@ while running:
     
 
     updateDraw()
-    
+
 
 
 pygame.quit()
