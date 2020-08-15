@@ -160,8 +160,6 @@ class Projectile:
         self.draw()
 
 
-
-
 def collide(obj1, obj2):
     offset_x = obj2.x - obj1.x
     offset_y = obj2.y - obj1.y
@@ -174,21 +172,30 @@ def spawnEnemyCool():
         enemycooltime = 0
     else:
         enemycooltime += DeltaTime
+
+def rotateTest(img):
+    center = img.get_rect().center
+    rotateimg = pygame.transform.rotate(img, pygame.time.get_ticks()/10)
+    newpivot = rotateimg.get_rect(center = center)
+    screen.blit(rotateimg, (100 + newpivot[0],  150 + newpivot[1]))
+    
+    pygame.draw.circle(screen, (0, 255, 0), (100,  150), 7, 0)
         
 
 
 # create player char
 PlayerChar = Player(pc_pos_x, pc_pos_y, 10)
-charList.append(Enemy(screen_width/2, 50, 1, "1"))
+# charList.append(Enemy(screen_width/2, 50, 1, "1"))
 charList.append(PlayerChar)
-
 
 
 
 def updateDraw(): #Draw screen every tick
     screen.blit(bgimage, (0, 0))
 
-    spawnEnemyCool()
+    # spawnEnemyCool()
+
+    rotateTest(enemyimage)
 
     for char in charList:
         if char.isFoe:  # enemychar udpate
