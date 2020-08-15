@@ -1,0 +1,13 @@
+player
+    -hp
+    -position
+    -fireRate
+    -
+
+
+projectile
+    -isFoe
+    -vel
+    -Direction
+    -BoundCount
+    
