@@ -21,16 +21,15 @@ pc_width = pc_size[0]
 pc_height = pc_size[1]
 
 # Initial PC position
-pc_x_pos = screen_width / 2 - (pc_width/2)
-pc_y_pos = screen_height - pc_height
+pc_pos_x = screen_width / 2 - (pc_width/2)
+pc_pos_y = screen_height - pc_height
 
-mv_x = 0
-mv_y = 0
 
 class Pc:
-    def __init__(self, x, y):
+    def __init__(self, x, y, speed):
         self.x = x
         self.y = y
+        self.speed = speed
         # self.pcimage = None
     
     def draw(self):
@@ -45,20 +44,20 @@ class Pc:
 running = True
 FPS = 60
 Clock = pygame.time.Clock()
-font_main = pygame.font.SysFont("comicsans", 40)
+font_main = pygame.font.SysFont("comicsans", 10)
 inputlist = []
 CurrentMoveInput = ""
 
-Player = Pc(pc_x_pos, pc_y_pos)
+Player = Pc(pc_pos_x, pc_pos_y, 10)
 
 
 def updateDraw(): #Draw screen every tick
     screen.blit(bgimage, (0, 0))
-    # screen.blit(pcimage,(pc_x_pos, pc_y_pos))
+    # screen.blit(pcimage,(pc_pos_x, pc_pos_y))
     Player.draw()
 
     # draw ui
-    main_label = font_main.render(f"Level: {CurrentMoveInput}", 1, (255,0,0))
+    main_label = font_main.render(f"Level: {keys}", 1, (255,0,0))
     screen.blit(main_label, (10, 10))
 
     pygame.display.update()
@@ -73,45 +72,24 @@ while running:
             print("game end")
 
 # character Movement
-        keys = pygame.key.get_pressed()
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE:
-                running = False
-                print(" game end")
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_LEFT] and pc_pos_x >= 0:
+        pc_pos_x -= Player.speed
+    if keys[pygame.K_RIGHT] and pc_pos_x + pc_width < screen_width:
+        pc_pos_x += Player.speed
+    if keys[pygame.K_UP] and pc_pos_y >= 0:
+        pc_pos_y -= Player.speed
+    if keys[pygame.K_DOWN] and pc_pos_y + pc_height < screen_height:
+        pc_pos_y += Player.speed
 
-            if event.key == pygame.K_LEFT:
-                inputlist.append("LEFT")
-                CurrentMoveInput = "LEFT"
-                mv_x -= 5
-            elif event.key == pygame.K_RIGHT:
-                inputlist.append("RIGHT")
-                CurrentMoveInput = "RIGHT"
-                mv_x += 5
-            elif event.key == pygame.K_UP:
-                mv_y -= 2
-            elif event.key == pygame.K_DOWN:
-                mv_y += 2
+# game shut down
+    if keys[pygame.K_ESCAPE]:
+        running = False
+        print(" game end")
 
-        if event.type == pygame.KEYUP:
-            if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
-                mv_x = 0
-            elif event.key == pygame.K_UP or event.key == pygame.K_DOWN:
-                mv_y = 0
 
-    pc_x_pos += mv_x
-    pc_y_pos += mv_y
-
-    if pc_x_pos < 0:
-        pc_x_pos = 0
-    elif pc_x_pos > screen_width - pc_width:
-        pc_x_pos = screen_width - pc_width
-
-    if pc_y_pos < 0:
-        pc_y_pos = 0
-    elif pc_y_pos + pc_height > screen_height:
-        pc_y_pos = screen_height - pc_height
     
-    Player.updatePos(pc_x_pos, pc_y_pos)
+    Player.updatePos(pc_pos_x, pc_pos_y)
     updateDraw()
 
 
