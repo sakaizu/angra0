@@ -36,10 +36,12 @@ pc_pos_y = screen_height - pc_height
 running = True
 FPS = 60.0
 DeltaTime = 1/FPS
+enemycooltime = 0
 Clock = pygame.time.Clock()
 font_main = pygame.font.SysFont("comicsans", 50)
+
 projectileList = []
-enemyList = []
+# enemyList = []
 charList = []
 
 
@@ -54,6 +56,7 @@ class Char:
         self.speed = speed
         self.hp = 100
         self.cool_down_counter = 0
+        self.isFoe = False
     
     def draw(self):
         screen.blit(self.charimg, (self.x, self.y))
@@ -65,14 +68,14 @@ class Char:
         else:
             self.cool_down_counter += DeltaTime
 
-    def fire(self, vel, dir_x, dir_y):
+    def fire(self, vel, dir_x, dir_y, isFoe):
         if self.cool_down_counter >= 1.0:
-            projectileList.append(Projectile(self.x + (pc_width / 2), self.y, vel, dir_x, dir_y))
+            projectileList.append(Projectile(self.x + (pc_width / 2), self.y, vel, dir_x, dir_y, isFoe))
             self.cool_down_counter = 0
 
-    def multfire(self, vel, dir_x, dir_y):
+    def multfire(self, vel, dir_x, dir_y, isFoe):
         if self.cool_down_counter >= 1.0:
-            projectileList.append(Projectile(self.x + (pc_width / 2), self.y, vel, dir_x, dir_y))
+            projectileList.append(Projectile(self.x + (pc_width / 2), self.y, vel, dir_x, dir_y, isFoe))
 
     def setcooltime(self):
         self.cool_down_counter = 0
@@ -99,6 +102,7 @@ class Enemy(Char):
         super().__init__(x, y, speed)
         self.charimg = self.VARI_MAP[var]
         self.mask = pygame.mask.from_surface(self.charimg)
+        self.isFoe = True
     
     def move(self):
         self.y += self.speed
@@ -109,15 +113,17 @@ class Enemy(Char):
             
 
 
+
 class Projectile:
-    def __init__(self, x, y, vel, dir_x, dir_y):
+    def __init__(self, x, y, vel, dir_x, dir_y, isFoe):
         self.x = x
         self.y = y
         self.dir_x = dir_x
         self.dir_y = dir_y
         self.img = projectileimage
         self.vel = vel
-        self.Maxboundcount = 0
+        self.isFoe = isFoe
+        self.boundcount = 3
         self.mask = pygame.mask.from_surface(self.img)
 
     def draw(self):
@@ -130,21 +136,29 @@ class Projectile:
     def collision(self, obj):
         return collide(self, obj)
 
-    def checkbound(self):
+
+    def changeSide(self):
+        if self.isFoe:
+            self.isFoe = False
+        else:
+            self.isFoe = True
+
+
+    def checkbounce(self):
         if self.y < 0 or self.y > screen_height:
-            self.dir_y *= -1
+            self.changeSide()
+            if self.boundcount >= 0:
+                self.dir_y *= -1
+                self.boundcount -= 1
+                return "bounce"
+            else:
+                return "kill"
 
     def update(self):
-        self.checkbound()
+        # self.checkbounce()
         self.move()
         self.draw()
 
-
-
-
-# create player char
-PlayerChar = Player(pc_pos_x, pc_pos_y, 10)
-enemyList.append(Enemy(screen_width/2, 50, 1, "1"))
 
 
 
@@ -153,27 +167,52 @@ def collide(obj1, obj2):
     offset_y = obj2.y - obj1.y
     return obj1.mask.overlap(obj2.mask, (int(offset_x), int(offset_y))) != None
 
+def spawnEnemyCool():
+    global enemycooltime
+    if enemycooltime >= 1:
+        charList.append(Enemy(random.randrange(50, screen_width-50), random.randrange( -100, -50), 1, "1"))
+        enemycooltime = 0
+    else:
+        enemycooltime += DeltaTime
+        
+
+
+# create player char
+PlayerChar = Player(pc_pos_x, pc_pos_y, 10)
+charList.append(Enemy(screen_width/2, 50, 1, "1"))
+charList.append(PlayerChar)
+
+
+
 
 def updateDraw(): #Draw screen every tick
     screen.blit(bgimage, (0, 0))
-    PlayerChar.update()
 
-    for enemy in enemyList:
-        enemy.move()
-        enemy.update()
-    
+    spawnEnemyCool()
+
+    for char in charList:
+        if char.isFoe:  # enemychar udpate
+            char.move()
+            char.update()
+        else:
+            char.update() # playerchar update
+
     for i in projectileList:
         i.update()
-        for enemy in enemyList:
-            # print(i.collision(enemy))
-            if i.collision(enemy):
-                projectileList.remove(i)
-                print(enemy)
+        if i.checkbounce() == "kill":
+            projectileList.remove(i)
+
+        for char in charList:
+            if i.collision(char):
+                if char.isFoe != i.isFoe:
+                    projectileList.remove(i)
+                    charList.remove(char)
+                    print(char)
 
 
 # draw ui
     HP_label = font_main.render(f"HP: {PlayerChar.hp}", 1, (255,0,0))
-    Pos_label = font_main.render(f"Pos: {PlayerChar.cool_down_counter}", 1, (0, 255, 0))
+    Pos_label = font_main.render(f"data01: {len(projectileList)}", 1, (0, 255, 0))
     screen.blit(HP_label, (10, 10))
     screen.blit(Pos_label, (10, 50))
 
@@ -207,7 +246,7 @@ while running:
 
 # character Fire
     if keys[pygame.K_SPACE]:
-        PlayerChar.fire(200, 0, -1)
+        PlayerChar.fire(200, 0, -1, False)
 
         # for i in range(1, 11):
         #     x = math.cos(float(i/10) * (math.pi * 2))
