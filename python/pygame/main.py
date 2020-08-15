@@ -19,6 +19,7 @@ pc_size = pcimage.get_rect().size
 
 pc_width = pc_size[0]
 pc_height = pc_size[1]
+
 # Initial PC position
 pc_x_pos = screen_width / 2 - (pc_width/2)
 pc_y_pos = screen_height - pc_height
@@ -26,20 +27,38 @@ pc_y_pos = screen_height - pc_height
 mv_x = 0
 mv_y = 0
 
+class Pc:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        # self.pcimage = None
+    
+    def draw(self):
+        screen.blit(pcimage, (self.x, self.y))
+
+    def updatePos(self, x, y):
+        self.x = x
+        self.y = y
+
 
 
 running = True
 FPS = 60
 Clock = pygame.time.Clock()
 font_main = pygame.font.SysFont("comicsans", 40)
+inputlist = []
+CurrentMoveInput = ""
+
+Player = Pc(pc_x_pos, pc_y_pos)
 
 
 def updateDraw(): #Draw screen every tick
     screen.blit(bgimage, (0, 0))
-    screen.blit(pcimage,(pc_x_pos, pc_y_pos))
+    # screen.blit(pcimage,(pc_x_pos, pc_y_pos))
+    Player.draw()
 
     # draw ui
-    main_label = font_main.render(f"Level: {Clock}", 1, (255,0,0))
+    main_label = font_main.render(f"Level: {CurrentMoveInput}", 1, (255,0,0))
     screen.blit(main_label, (10, 10))
 
     pygame.display.update()
@@ -54,16 +73,19 @@ while running:
             print("game end")
 
 # character Movement
+        keys = pygame.key.get_pressed()
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 running = False
                 print(" game end")
 
             if event.key == pygame.K_LEFT:
-                if event.key == pygame.K_RIGHT:
-                    mv_x += 5
+                inputlist.append("LEFT")
+                CurrentMoveInput = "LEFT"
                 mv_x -= 5
             elif event.key == pygame.K_RIGHT:
+                inputlist.append("RIGHT")
+                CurrentMoveInput = "RIGHT"
                 mv_x += 5
             elif event.key == pygame.K_UP:
                 mv_y -= 2
@@ -89,7 +111,7 @@ while running:
     elif pc_y_pos + pc_height > screen_height:
         pc_y_pos = screen_height - pc_height
     
-
+    Player.updatePos(pc_x_pos, pc_y_pos)
     updateDraw()
 
 
