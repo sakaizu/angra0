@@ -13,6 +13,9 @@ screen = pygame.display.set_mode((screen_width, screen_height))
 
 pygame.display.set_caption("mygame")
 
+# Test image
+testimage = pygame.image.load(os.path.join('python/pygame', 'asset/testImg.png'))
+
 # background image
 bgimage = pygame.transform.scale(pygame.image.load(os.path.join('python/pygame', 'asset/bg.png')), (screen_width, screen_height))
 
@@ -26,7 +29,8 @@ pc_height = pc_size[1]
 enemyimage = pygame.image.load(os.path.join('python/pygame', 'asset/enemy.png'))
 
 # projectile image
-projectileimage = pygame.image.load(os.path.join('python/pygame', 'asset/projectile.png'))
+projectileEnemyimage = pygame.image.load(os.path.join('python/pygame', 'asset/projectile.png'))
+projectileFriendimage = pygame.image.load(os.path.join('python/pygame', 'asset/projectile_f.png'))
 
 # Initial PC position
 pc_pos_x = screen_width / 2 - (pc_width/2)
@@ -81,6 +85,17 @@ class Char:
     def setcooltime(self):
         self.cool_down_counter = 0
 
+    def checkhealth(self):
+        if self.hp <= 0:
+            print("death")
+            return "Kill"
+        else:
+            print("notdeath")
+            return None
+
+    def damaged(self, damage):
+        self.hp -= damage
+
     def update(self):
         self.draw()
         self.cooldown()
@@ -99,6 +114,7 @@ class Enemy(Char):
                 "2": (enemyimage),
                 "3": (enemyimage)
                 }
+
     def __init__(self, x, y, speed, var):
         super().__init__(x, y, speed)
         self.charimg = self.VARI_MAP[var]
@@ -119,6 +135,12 @@ class Enemy(Char):
     def update(self):
         self.draw()
         self.cooldown()
+    
+    def checkhealth(self):
+        if self.hp <= 0:
+            return True
+        else:
+            return None
 
 
 
@@ -128,20 +150,18 @@ class Projectile:
         self.y = y
         self.dir_x = dir_x
         self.dir_y = dir_y
-        self.img = projectileimage
+        self.img = projectileFriendimage
         self.vel = vel
         self.isFoe = isFoe
         self.boundcount = 3
+        self.lifetime = 0
         self.mask = pygame.mask.from_surface(self.img)
 
     def draw(self):
-        
         imgcenter = self.img.get_rect().center
-        rotateimg = pygame.transform.rotate(self.img, pygame.time.get_ticks() / 10)
-
+        rotateimg = pygame.transform.rotate(self.img, self.lifetime * 300)
         rotatePivot = rotateimg.get_rect(center = imgcenter)
-
-        screen.blit(rotateimg, (self.x - (rotateimg.get_width() / 2) + rotatePivot[0], self.y + rotatePivot[1]))
+        screen.blit(rotateimg, (self.x - imgcenter[0] + rotatePivot[0], self.y + rotatePivot[1]))
 
     def move(self):
         self.x += self.dir_x * self.vel * DeltaTime
@@ -154,8 +174,10 @@ class Projectile:
     def changeSide(self):
         if self.isFoe:
             self.isFoe = False
+            self.img = projectileFriendimage
         else:
             self.isFoe = True
+            self.img = projectileEnemyimage
 
 
     def checkbounce(self):
@@ -169,7 +191,7 @@ class Projectile:
                 return "kill"
 
     def update(self):
-        # self.checkbounce()
+        self.lifetime += DeltaTime
         self.move()
         self.draw()
 
@@ -212,8 +234,7 @@ def updateDraw(): #Draw screen every tick
     screen.blit(bgimage, (0, 0))
 
     spawnEnemyCool()
-
-    rotateTest(enemyimage, 100 ,100)
+    # rotateTest(enemyimage, 100 ,100)
 
     for char in charList:
         if char.isFoe:  # enemychar udpate
@@ -231,8 +252,9 @@ def updateDraw(): #Draw screen every tick
             if i.collision(char):
                 if char.isFoe != i.isFoe:
                     projectileList.remove(i)
-                    charList.remove(char)
-                    print(char)
+                    char.damaged(10)
+                    if char.checkhealth() == True:
+                        charList.remove(char)
 
 
 # draw ui

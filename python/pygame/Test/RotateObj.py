@@ -135,7 +135,6 @@ def rotateTest(img, x, y):
     pygame.draw.line(screen, (255,255,0), (x, y), (x + r.width, y), 5)
     pygame.draw.line(screen, (255,255,0), (x, y + r.height), (x + r.width, y + r.height), 5)
 
-    print(r)
 # create player char
 PlayerChar = Player(pc_pos_x, pc_pos_y, 10)
 charList.append(PlayerChar)
