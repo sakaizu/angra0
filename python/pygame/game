@@ -11,3 +11,11 @@ projectile
     -Direction
     -BoundCount
     
+
+
+
+get_rect().size = 사이즈 출력
+get_rect().center = 이미지의 중간 좌표출력
+get_rect(). + top, right, left, bottom
+get_rect(center) = (이미지 중간에서의 거리, 이미지크기)
+

@@ -2,6 +2,7 @@ import pygame
 import os
 import random
 import math
+from pygame.math import Vector2
 
 pygame.font.init()
 pygame.init()
@@ -110,7 +111,14 @@ class Enemy(Char):
     def checkBottomFloor(self):
         if self.y > screen_height:
             pass
+
+    def draw(self):
+        # rotateTest(self.charimg, self.x, self.y)
+        screen.blit(self.charimg, (self.x, self.y))
             
+    def update(self):
+        self.draw()
+        self.cooldown()
 
 
 
@@ -127,7 +135,13 @@ class Projectile:
         self.mask = pygame.mask.from_surface(self.img)
 
     def draw(self):
-        screen.blit(self.img, (self.x - (projectileimage.get_width() / 2), self.y))
+        
+        imgcenter = self.img.get_rect().center
+        rotateimg = pygame.transform.rotate(self.img, pygame.time.get_ticks() / 10)
+
+        rotatePivot = rotateimg.get_rect(center = imgcenter)
+
+        screen.blit(rotateimg, (self.x - (rotateimg.get_width() / 2) + rotatePivot[0], self.y + rotatePivot[1]))
 
     def move(self):
         self.x += self.dir_x * self.vel * DeltaTime
@@ -173,14 +187,18 @@ def spawnEnemyCool():
     else:
         enemycooltime += DeltaTime
 
-def rotateTest(img):
-    center = img.get_rect().center
-    rotateimg = pygame.transform.rotate(img, pygame.time.get_ticks()/10)
-    newpivot = rotateimg.get_rect(center = center)
-    screen.blit(rotateimg, (100 + newpivot[0],  150 + newpivot[1]))
+def rotateTest(img, x, y):
+
+    imgcenter = img.get_rect().center
     
-    pygame.draw.circle(screen, (0, 255, 0), (100,  150), 7, 0)
-        
+    rotateimg = pygame.transform.rotate(img, pygame.time.get_ticks()/10)
+    r = rotateimg.get_rect()
+    print(r)
+
+    newpivot = rotateimg.get_rect(center = imgcenter)
+
+    a = screen.blit(rotateimg, (newpivot[0] + x, newpivot[1] + y))
+    pygame.draw.circle(screen, (0, 255, 0), (newpivot[0]+ x,  newpivot[1]+ y), 7, 0)
 
 
 # create player char
@@ -193,9 +211,9 @@ charList.append(PlayerChar)
 def updateDraw(): #Draw screen every tick
     screen.blit(bgimage, (0, 0))
 
-    # spawnEnemyCool()
+    spawnEnemyCool()
 
-    rotateTest(enemyimage)
+    rotateTest(enemyimage, 100 ,100)
 
     for char in charList:
         if char.isFoe:  # enemychar udpate
