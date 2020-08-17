@@ -33,6 +33,9 @@ enemyimage = pygame.image.load(os.path.join('python/pygame', 'asset/enemy.png'))
 projectileEnemyimage = pygame.image.load(os.path.join('python/pygame', 'asset/projectile.png'))
 projectileFriendimage = pygame.image.load(os.path.join('python/pygame', 'asset/projectile_f.png'))
 
+# particle image
+particleimg = pygame.image.load(os.path.join('python/pygame', 'asset/particle.png'))
+
 # Initial PC position
 pc_pos_x = screen_width / 2 - (pc_width/2)
 pc_pos_y = screen_height - pc_height
@@ -45,13 +48,18 @@ DeltaTime = 1/FPS
 GameTime = 0
 enemycooltime = 0
 Clock = pygame.time.Clock()
-font_main = pygame.font.SysFont("comicsans", 50)
+isGameover = False
+font_main = pygame.font.SysFont("comicsans", 25)
 
 bgpos = 0 - bgimage.get_rect().center[1]
 
+Gameover_label = font_main.render("GAME OVER", 1, (0, 255, 0))
+
 projectileList = []
-# enemyList = []
 charList = []
+particleList = []
+
+
 
 
 class Char:
@@ -67,6 +75,9 @@ class Char:
         self.cool_down_counter = 0
         self.cool_down_Max = 1
         self.isFoe = False
+
+    def reset(self):
+        self.hp = 100
     
     def draw(self):
         screen.blit(self.charimg, (self.x, self.y))
@@ -118,23 +129,24 @@ class Enemy(Char):
                 "3": (enemyimage)
                 }
 
-    def __init__(self, x, y, speed, var):
+    def __init__(self, x, y, speed, var, hp):
         super().__init__(x, y, speed)
         self.charimg = self.VARI_MAP[var]
         self.mask = pygame.mask.from_surface(self.charimg)
         self.isFoe = True
         self.cool_down_Max = 5
-        self.hp = 20
+        self.hp = hp
     
     def move(self):
         self.y += self.speed
 
 
     def lockfire(self, vel):
-        if self.cool_down_counter >= self.cool_down_Max and self.y > 10:
-            normalizeddir = pygame.math.Vector2(PlayerChar.x - self.x, PlayerChar.y - self.y).normalize()
-            self.fire(vel, normalizeddir[0], normalizeddir[1], True)
-            self.cool_down_counter = 0
+        if isGameover == False:
+            if self.cool_down_counter >= self.cool_down_Max and self.y > 10:
+                normalizeddir = pygame.math.Vector2(PlayerChar.x - PlayerChar.charimg.get_rect().center[0] - self.x, PlayerChar.y - self.y).normalize()
+                self.fire(vel, normalizeddir[0], normalizeddir[1], True)
+                self.cool_down_counter = 0
 
 
     def checkBottomFloor(self):
@@ -166,7 +178,7 @@ class Projectile:
         self.vel = float(vel)
         self.isFoe = isFoe
         self.boundcount = 3
-        self.lifetime = 0
+        self.age = 0
         self.mask = pygame.mask.from_surface(self.img)
         self.kill = False
 
@@ -175,7 +187,7 @@ class Projectile:
             self.img = projectileEnemyimage
 
         imgcenter = self.img.get_rect().center
-        rotateimg = pygame.transform.rotate(self.img, self.lifetime * 300)
+        rotateimg = pygame.transform.rotate(self.img, self.age * 300)
         rotatePivot = rotateimg.get_rect(center = imgcenter)
         screen.blit(rotateimg, (self.x - imgcenter[0] + rotatePivot[0], self.y + rotatePivot[1]))
 
@@ -187,6 +199,7 @@ class Projectile:
         return collide(self, obj)
 
     def changeSide(self):
+        spawnparticle(self.x, self.y, enemyimage, 0.5, 50)
         if self.isFoe:
             self.isFoe = False
             self.img = projectileFriendimage
@@ -200,7 +213,6 @@ class Projectile:
             if self.boundcount >= 0:
                 self.dir_y *= -1
                 self.boundcount -= 1
-                pass
             else:
                 return True
         if self.x < 0 or self.x > screen_width:
@@ -208,39 +220,68 @@ class Projectile:
             if self.boundcount >= 0:
                 self.dir_x *= -1
                 self.boundcount -= 1
-                pass
             else:
                 return True
 
     def update(self):
-        self.lifetime += DeltaTime
+        self.age += DeltaTime
         self.move()
         self.draw()
 
 
 
 
-class particle():
-    def __init__(self, x, y, img):
+class particle:
+    def __init__(self, x, y, img, lifetime, size, dir_x, dir_y, vel):
         self.x = x
         self.y = y
+        self.dir_x = dir_x
+        self.dir_y = dir_y
+        self.vel = vel
         self.img = img
-        lifetime = 1.0
-        age = 0
-        size = 100
+        self.lifetime = lifetime
+        self.age = 0.0
+        self.normalizeage = 0
+        self.size = size
+        self.kill = False
+        self.scalebias = 0
+        self.scaletype = 1
 
     def timer(self):
-        age += DeltaTime
+        self.age += DeltaTime
+        self.normalizeage = self.age / self.lifetime
+
+    def calcscale(self):
+        if self.scaletype == 0:
+            if self.normalizeage < 0.5:
+                self.scalebias  = self.normalizeage * 2
+            else:
+                self.scalebias = (1 - self.normalizeage) * 2
+                if self.scalebias < 0:
+                    self.scalebias = 0
+        elif self.scaletype == 1:
+            self.scalebias = 1 - self.normalizeage
+            if self.scalebias < 0:
+                    self.scalebias = 0
+
+    def move(self):
+        self.x += self.dir_x * DeltaTime * self.vel * (1 - self.normalizeage)
+        self.y += self.dir_y * DeltaTime * self.vel * (1 - self.normalizeage)
+
+    def draw(self):
+       scaleimg = pygame.transform.scale(self.img, (int(self.scalebias * self.size), int(self.scalebias * self.size)))
+       screen.blit(scaleimg, (self.x - scaleimg.get_rect().center[0], self.y - scaleimg.get_rect().center[1]))
+
+    def checklifetime(self):
+        if self.age > self.lifetime:
+            self.kill = True
 
     def update(self):
         self.timer()
-        
-
-    def spawn(self):
-        screen.blit(img, (self.x, self.y))
-
-
-
+        self.move()
+        self.calcscale()
+        self.draw()
+        self.checklifetime()
 
 
 
@@ -253,7 +294,7 @@ def collide(obj1, obj2):
 def spawnEnemyCool():
     global enemycooltime
     if enemycooltime >= 1:
-        charList.append(Enemy(random.randrange(50, screen_width-50), random.randrange( -100, -50), 1, "1"))
+        charList.append(Enemy(random.randrange(50, screen_width-50), random.randrange( -150, -100), 1, "1", random.randint(10, 100)))
         enemycooltime = 0
     else:
         enemycooltime += DeltaTime
@@ -282,8 +323,45 @@ def rotateTest(img, x, y):
 
 
 
+
+def spawnparticle(x, y, img, lifetime, size):
+    dir_x = 0
+    dir_y = 0
+    vel = 0
+
+    particleList.append(particle(x, y, img, lifetime, size, dir_x, dir_y, vel))
+
+def burstparticles(x, y, img, count, vel, size):
+    for i in range(1, count + 1):
+        dir_x = math.cos(float(i/count) * (math.pi * 2)) * 100
+        dir_y = math.sin(float(i/count) * (math.pi * 2)) * 100
+
+        particlelifetime = random.random() * 3
+        particlevel = vel * random.random()
+        particlesize = size
+
+        particleList.append(particle(x, y, img, particlelifetime , particlesize, dir_x, dir_y, particlevel))
+
+def checkgameover():
+    global isGameover
+    if PlayerChar in charList:
+        pass
+    else:
+        isGameover = True
+        screen.blit(Gameover_label, (screen_height/2, screen_width/2))
+
+def resetgame():
+    global isGameover
+    charList.clear()
+    projectileList.clear()
+    charList.append(PlayerChar)
+    PlayerChar.reset()
+    isGameover = False
+
+
+
 # create player char
-PlayerChar = Player(pc_pos_x, pc_pos_y, 10)
+PlayerChar = Player(pc_pos_x, pc_pos_y, 5)
 # charList.append(Enemy(screen_width/2, 50, 1, "1"))
 charList.append(PlayerChar)
 
@@ -294,9 +372,12 @@ def updateDraw(): #Draw screen every tick
     global GameTime
     GameTime += DeltaTime
 
-
     scrollbg()
+
     spawnEnemyCool()
+
+
+
 
     for char in charList:
         if char.isFoe:  # enemychar udpate
@@ -305,15 +386,19 @@ def updateDraw(): #Draw screen every tick
         else:
             char.update() # playerchar update
 
+
     for i in projectileList:
         i.update()
         for char in charList:
             if i.collision(char):
                 if char.isFoe != i.isFoe:
+                    spawnparticle(i.x, i.y, particleimg, 0.35, 50)
+                    burstparticles(i.x, i.y, particleimg, 20, 1, 5)
                     i.kill = True
                     char.damaged(10)
                     if char.checkhealth() == True:
                         charList.remove(char)
+                        burstparticles(char.x + char.charimg.get_rect().center[0], char.y + char.charimg.get_rect().center[1], particleimg, 100, 5, 20)
 
         if i.checkbounce():
             i.kill = True
@@ -322,11 +407,22 @@ def updateDraw(): #Draw screen every tick
             projectileList.remove(i)
 
 
+    for p in particleList:
+        p.update()
+        if p.kill:
+            particleList.remove(p)
+
+
 # draw ui
     HP_label = font_main.render(f"HP: {PlayerChar.hp}", 1, (255,0,0))
     Pos_label = font_main.render(f"data01: {len(projectileList)}", 1, (0, 255, 0))
+    Particle_label = font_main.render(f"data02: {len(particleList)}", 1, (0, 255, 0))
     screen.blit(HP_label, (10, 10))
     screen.blit(Pos_label, (10, 50))
+    screen.blit(Particle_label, (10, 100))
+
+# Check Player Dead
+    checkgameover()
 
 # update screen
     pygame.display.update()
@@ -340,7 +436,6 @@ while running:
             running = False
             print("game end")
 
-        
 
 
 # character Movement
@@ -358,12 +453,11 @@ while running:
     if keys[pygame.K_SPACE]:
         PlayerChar.fire(200, 0, -1, False)
 
-        # for i in range(1, 11):
-        #     x = math.cos(float(i/10) * (math.pi * 2))
-        #     y = math.sin(float(i/10) * (math.pi * 2))
-        #     PlayerChar.multfire(200, x, y)
-        # PlayerChar.setcooltime()
 
+# reset
+    if keys[pygame.K_SPACE]:
+        if isGameover:
+            resetgame()
 
 
 
