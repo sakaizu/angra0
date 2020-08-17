@@ -4,7 +4,6 @@ import random
 import math
 from pygame.math import Vector2
 
-
 pygame.font.init()
 pygame.init()
 
@@ -339,7 +338,6 @@ def burstparticles(x, y, img, count, vel, size):
         particlelifetime = random.random() * 3
         particlevel = vel * random.random()
         particlesize = size
-
         particleList.append(particle(x, y, img, particlelifetime , particlesize, dir_x, dir_y, particlevel))
 
 def checkgameover():
@@ -371,13 +369,8 @@ def updateDraw(): #Draw screen every tick
 
     global GameTime
     GameTime += DeltaTime
-
     scrollbg()
-
     spawnEnemyCool()
-
-
-
 
     for char in charList:
         if char.isFoe:  # enemychar udpate
