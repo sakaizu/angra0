@@ -4,17 +4,18 @@ import time
 
 clipboard.copy("https://www.youtube.com/feed/history")
 
-a = "https://www.youtube.com/feed/history"
-
-pg.press('winleft')
+pg.hotkey('command', 'space')
 
 pg.typewrite('chrome')
 pg.press('enter')
 
 time.sleep(0.3)
 
-pg.press('hangul')
+pg.hotkey('command', 't')
 
-pg.hotkey('ctrl', 'v')
+
+time.sleep(0.3)
+
+pg.hotkey('command', 'v')
 pg.press('enter')
 
