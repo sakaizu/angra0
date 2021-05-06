@@ -13,11 +13,17 @@ np.random.randint(100, 400)
 width = 32
 height = 32
 
-# inputpixel = np.random.randint(256, size=[width, height, 1])
+inputpixel = np.zeros((width, height, 3))
+
+for x in range(len(inputpixel)):
+    for y in range(len(inputpixel[0])):
+        inputpixel[x, y] = np.random.choice(100, size=(3))
+
+print(inputpixel)
+
 
 
 dataimage = np.random.randint(256, size= [width, height, 3]).astype('uint8')
-print(dataimage)
 
 result = Image.fromarray(dataimage)
 
