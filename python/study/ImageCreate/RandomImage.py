@@ -27,7 +27,7 @@ dataimage = np.random.randint(256, size= [width, height, 3]).astype('uint8')
 
 result = Image.fromarray(dataimage)
 
-result.save(path + filename + ".png")
+# result.save(path + filename + ".png")
 # result.close()
 endtime = time.time()
 print("worktime = ", round((endtime - starttime),3))
