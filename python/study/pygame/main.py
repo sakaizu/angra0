@@ -104,7 +104,7 @@ while True:
     pygame.display.update()
     clock.tick(30)
     
-    #p1.movement = [0,0]
+    p1.movement = [0,0]
 
     keys = pygame.key.get_pressed()
     if keys[pygame.K_LEFT]:
@@ -135,6 +135,8 @@ while True:
         print(p1.checkcollide(allrect))
         #print(p1.movecheck(allrect))
         pass
-    print(p1.movecheck(allrect))
+    p1.movecheck(allrect)
+
+
 
 

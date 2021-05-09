@@ -9,7 +9,7 @@ class MyChar:
         self.img = img
         self.screen = screen
         self.movement = [0,0]
-        self.speed = 2
+        self.speed = 8
         self.currentspeed = 1
         self.ismoving = False
         self.rect = pygame.Rect(self.x, self.y, self.img.get_width(), self.img.get_height())
@@ -23,12 +23,15 @@ class MyChar:
             self.currentspeed -= 0.25
             if self.currentspeed < 0:
                 self.currentspeed = 0
+    
+    def gravity(self):
+        self.movement[1] += 0.5
 
     def move(self):
-
+        
         self.moveaccel()
-        self.x += self.movement[0] * self.speed * self.currentspeed
-        self.y += self.movement[1] * self.speed * self.currentspeed
+        self.x += self.movement[0] * self.speed# * self.currentspeed
+        self.y += self.movement[1] * self.speed
 
         self.rect.x = self.x
         self.rect.y = self.y
@@ -42,12 +45,12 @@ class MyChar:
             if self.movement[0] > 0:
                 self.movement[0] = 0
                 #self.rect.right = tile.left
-                #self.x = tile.left - self.img.get_width() - 1
+                self.x = tile.left - self.img.get_width()
                 collision_types['right'] = True
             elif self.movement[0] < 0:
                 self.movement[0] = 0
                 #self.rect.left = tile.right
-                #self.x = tile.right + 1
+                self.x = tile.right
                 collision_types['left'] = True
 
         self.rect.x = self.x #restore rect collision test
@@ -58,12 +61,12 @@ class MyChar:
             if self.movement[1] > 0:
                 self.movement[1] = 0
                 #self.rect.bottom = tile.top
-                #self.y = tile.top
+                self.y = tile.top - self.img.get_height()
                 collision_types['down'] = True
             if self.movement[1] < 0:
                 self.movement[1] = 0
                 #self.rect.top = tile.bottom
-                #self.y = tile.bottom
+                self.y = tile.bottom
                 collision_types['top'] = True
 
         self.rect.y = self.y #restore rect collision test        
