@@ -1,12 +1,11 @@
 import pygame, sys
-import sys
 import os
 from pygame.locals import *
 import textures
 import class_char
 import class_tile
 import extractImage
-
+import objectlist as ol
 
 datapath = os.path.join(os.getcwd(), "data")
 
@@ -23,31 +22,36 @@ display = pygame.Surface((100, 100))
 #player_image = pygame.image.load(os.path.join(datapath, "player_02.png"))
 player_image = textures.player_image_r
 
-allrect = []
-tiles = []
-
-p1 = class_char.MyChar(10, 10, img = textures.player_image_r, screen = display)
-
-allrect.append(p1.rect)
 
 
-#GetTilePixelData
+# GetTilePixelData
 tileData = extractImage.getdatafrompixel(os.path.join(datapath, 'BG_test_01.png'))
 
-#Spawn Tiles
+# Spawn Tiles
 for y in range(10):
     for x in range(10):
         if tileData[y][x][0] ==0:
-            tiles.append(class_tile.tile(x*10, y*10, textures.bg_moss_01, True, display))
+            ol.tiles.append(class_tile.tile(x*10, y*10, textures.bg_moss_01, True, display))
         else:
-            tiles.append(class_tile.tile(x*10, y*10, textures.bg_moss_02, False, display))
-for tile in tiles:
-    tile.appendrect(allrect)
+            ol.tiles.append(class_tile.tile(x*10, y*10, textures.bg_moss_02, False, display))
+
+# Create Characters
+p1 = class_char.player(10, 10, img = textures.player_image_r, screen = display)
+m1 = class_char.monster(70, 10, img = textures.monster_image_1, screen = display)
+m2 = class_char.monster(65, 10, img = textures.monster_image_1, screen = display)
+m3 = class_char.monster(60, 10, img = textures.monster_image_1, screen = display)
+
+p1.isplayer = True
+
+
+# Save external list
 
 
 
 
-#Game Loop
+
+# Game Loop------------------------------------------------------------
+
 while True:
     display.fill((10,10,10))
     display.blit(textures.bg_moss_01, (0,0))
@@ -56,36 +60,69 @@ while True:
     clock.tick(30)
 
 
-#TileMap Update from tile array
-    for i in tiles:
+# TileMap Update from tile array
+    for i in ol.tiles:
         i.update()
 
-    for rect in allrect:
-        pygame.draw.rect(display, (255,0,0), rect, 1)
+# debug draw all rect
+    for tile in ol.tiles:
+        if tile.isblock:
+            pygame.draw.rect(display, (255,0,0), tile.rect, 1)
+    for char in ol.chars:
+        pygame.draw.rect(display, (0,0,255), char.rect, 1)
 
 
-# player tick update
+# Characters tick update
 # moveCollisioncheck(previus Movement) -> Move -> Reset
-    p1.movecheck(allrect)
-    print(p1.vel)
-    p1.update()
+    for char in ol.chars:
+        if char.isplayer:
+           char.movecheck(ol.tiles)
+           char.update()
+           char.movement = [0,0]
+        else:
+            if char.movecheck(ol.tiles)["left"]:
+                char.movement[0] = 1
+            elif char.movecheck(ol.tiles)["right"]:
+                char.movement[0] = -1
+            char.update()
 
-# reset movement
-    p1.movement = [0,0]
 
+
+    if p1.charcollision_check()[0] == "attack":
+        p1.vel[1] = -7
+        for mon in p1.charcollision_check()[1]:
+            #ol.chars.remove(mon)
+            mon.dead()
+            break
+
+
+    #print(ol.obj_chars.sprites().isplayer)
+# !!!!!!!!!!! Groups !!!!!!!!!!!!!!
+    print(ol.obj_chars)
+    print(ol.obj_tiles)
+    for i in ol.obj_chars.sprites():
+        print(i.isplayer)
 
 #set display to screen res
     surf = pygame.transform.scale(display, WINDOW_SIZE)
     screen.blit(surf, (0, 0))
 
-
+#event loop
     for event in pygame.event.get():
-        if event.type == QUIT:
+        if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
 
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                # p1.accel[1] += -7
+                p1.vel[1] = -7
 
-# Key binding
+            if event.key == pygame.K_ESCAPE:
+                pygame.quit()
+
+
+# Key binding`
     keys = pygame.key.get_pressed()
     if keys[pygame.K_LEFT]:
         if p1.x > 0:
@@ -96,24 +133,22 @@ while True:
             p1.movement[0] = 1
             p1.img = textures.player_image_r
     if keys[pygame.K_UP]:
-        if p1.y > 0:
-            p1.movement[1] = -1
+        pass
+        # if p1.y > 0:
+        #     p1.movement[1] = -1
     if keys[pygame.K_DOWN]:
-        if p1.y + p1.img.get_height() <= WINDOW_SIZE[1]/2:
-            p1.movement[1] = 1
+        pass
+        # if p1.y + p1.img.get_height() <= WINDOW_SIZE[1]/2:
+        #     p1.movement[1] = 1
 
     if keys[pygame.K_SPACE]:
-        p1.accel[1] -= 3
+        # p1.accel[1] -= 3
         pass
 
     if keys[pygame.K_LEFT] or keys[pygame.K_RIGHT] or keys[pygame.K_UP] or keys[pygame.K_DOWN]:
         p1.ismoving = True
     else:
         p1.ismoving = False
-
-    if p1.checkcollide(allrect)[1]:
-        print(p1.checkcollide(allrect))
-        #print(p1.movecheck(allrect))
 
 
 

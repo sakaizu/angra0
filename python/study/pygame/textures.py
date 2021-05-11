@@ -9,6 +9,9 @@ player_image_r = pygame.image.load(os.path.join(datapath, "player_01.png"))
 player_image_l = pygame.image.load(os.path.join(datapath, "player_02.png"))
 
 
+monster_image_1 = pygame.image.load(os.path.join(datapath, "mon_01.png"))
+
+
 #background image
 bg_image = pygame.image.load(os.path.join(datapath, "BG.png"))
 bg_moss_01 = pygame.image.load(os.path.join(datapath, "BG_moss_01.png"))
