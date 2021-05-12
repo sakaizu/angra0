@@ -4,9 +4,12 @@ import os
 
 datapath = os.path.join(os.getcwd(), "data")
 
+
+
 #player image
 player_image_r = pygame.image.load(os.path.join(datapath, "player_01.png"))
 player_image_l = pygame.image.load(os.path.join(datapath, "player_02.png"))
+player_image_run = []
 
 
 monster_image_1 = pygame.image.load(os.path.join(datapath, "mon_01.png"))
