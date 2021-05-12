@@ -74,7 +74,7 @@ while True:
 
 # Characters tick update
 # moveCollisioncheck(previus Movement) -> Move -> Reset
-    for char in ol.chars:
+    for char in ol.obj_chars.sprites():
         if char.isplayer:
            char.movecheck(ol.tiles)
            char.update()
@@ -127,11 +127,11 @@ while True:
     if keys[pygame.K_LEFT]:
         if p1.x > 0:
             p1.movement[0] = -1
-            p1.img = textures.player_image_l
+            p1.img = pygame.transform.flip((textures.player_image_r), True, False)
     if keys[pygame.K_RIGHT]:
         if p1.x < WINDOW_SIZE[0]/2 - player_image.get_width():
             p1.movement[0] = 1
-            p1.img = textures.player_image_r
+            p1.img =textures.player_image_r
     if keys[pygame.K_UP]:
         pass
         # if p1.y > 0:

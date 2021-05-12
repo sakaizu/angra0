@@ -131,9 +131,10 @@ class Char(pygame.sprite.Sprite):
         return hitlist, hit
 
     def dead(self):
+        self.img = pygame.transform.flip(self.img, False, True)
         print("destroy!!")
-        self.kill()
-        ol.chars.remove(self)
+        #self.kill()
+        #ol.chars.remove(self)
 
 
 
